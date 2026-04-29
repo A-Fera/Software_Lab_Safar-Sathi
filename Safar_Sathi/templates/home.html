@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Safar Sathi — Discover Bangladesh{% endblock %}
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="chip mb-3"><i class="bi bi-star-fill"></i> Bangladesh's Travel Platform</div>
+                <h1 style="font-size:3rem;line-height:1.15;margin-bottom:1rem;">Explore the Beauty<br>of <span style="color:var(--accent)">Bangladesh</span></h1>
+                <p style="font-size:1.15rem;color:rgba(255,255,255,.85);max-width:520px;line-height:1.7;margin-bottom:2rem;">From the serene hills of Bandarban to the world's largest mangrove forest — discover breathtaking destinations with expert local guides.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'destinations:destination_list' %}" class="btn btn-warning btn-lg px-4"><i class="bi bi-compass me-2"></i>Browse Destinations</a>
+                    <a href="{% url 'accounts:guide_list' %}" class="btn btn-outline-light btn-lg px-4">Find a Guide</a>
+                </div>
+                <div class="row g-3 mt-4">
+                    <div class="col-4"><div class="stat-box"><div class="number">500+</div><div class="label">Destinations</div></div></div>
+                    <div class="col-4"><div class="stat-box"><div class="number">200+</div><div class="label">Local Guides</div></div></div>
+                    <div class="col-4"><div class="stat-box"><div class="number">10K+</div><div class="label">Travelers</div></div></div>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <div style="width:400px;height:350px;margin:0 auto;background:rgba(255,255,255,.08);border-radius:30px 10px 30px 10px;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+                    <i class="bi bi-geo-alt-fill" style="font-size:5rem;color:var(--accent);opacity:.9;"></i>
+                    <p style="color:rgba(255,255,255,.8);font-size:1rem;margin:0;">Your journey begins here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SEARCH BAR -->
+<section style="background:#fff;border-bottom:1px solid var(--border);padding:1.5rem 0;">
+    <div class="container">
+        <form action="{% url 'destinations:destination_list' %}" method="get">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search destinations, locations...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        <option value="beach">Beach</option>
+                        <option value="mountain">Mountain</option>
+                        <option value="forest">Forest</option>
+                        <option value="historical">Historical</option>
+                        <option value="river">River</option>
+                        <option value="wildlife">Wildlife</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- FEATURED DESTINATIONS -->
+<section class="section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="section-title mb-1">Featured Destinations</h2>
+                <p class="text-muted mb-0">Handpicked spots loved by travelers</p>
+            </div>
+            <a href="{% url 'destinations:destination_list' %}" class="btn btn-outline-primary btn-sm">View All <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+        {% if featured_destinations %}
+        <div class="row g-4">
+            {% for dest in featured_destinations %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    {% if dest.photos.first %}
+                    <img src="{{ dest.photos.first.image.url }}" class="card-img-top" height="220" alt="{{ dest.name }}" style="object-fit:cover;">
+                    {% else %}
+                    <div class="card-img-top img-placeholder" style="height:220px;"><i class="bi bi-image" style="font-size:3rem;opacity:.4;"></i></div>
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge-category">{{ dest.get_category_display }}</span>
+                        <h5 class="card-title mt-2">{{ dest.name }}</h5>
+                        <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ dest.location }}</p>
+                        <p class="card-text text-muted small" style="line-height:1.6;">{{ dest.description|truncatewords:18 }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3">
+                        <a href="{% url 'destinations:destination_detail' dest.pk %}" class="btn btn-primary btn-sm w-100">Explore <i class="bi bi-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-geo-alt" style="font-size:3rem;opacity:.3;"></i>
+            <p class="mt-3">No featured destinations yet. <a href="{% url 'destinations:destination_list' %}">Browse all</a></p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- WHY SAFAR SATHI -->
+<section style="background:#fff;padding:4rem 0;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Why Choose Safar Sathi?</h2>
+            <p class="text-muted">Everything you need for the perfect Bangladesh journey</p>
+        </div>
+        <div class="row g-4 text-center">
+            <div class="col-md-3">
+                <div style="width:64px;height:64px;background:rgba(26,107,60,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
+                    <i class="bi bi-shield-check" style="font-size:1.8rem;color:var(--primary);"></i>
+                </div>
+                <h6 class="fw-bold">Verified Guides</h6>
+                <p class="text-muted small">All guides are locally vetted and reviewed by fellow travelers.</p>
+            </div>
+            <div class="col-md-3">
+                <div style="width:64px;height:64px;background:rgba(245,158,11,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
+                    <i class="bi bi-credit-card" style="font-size:1.8rem;color:var(--accent);"></i>
+                </div>
+                <h6 class="fw-bold">Easy Payments</h6>
+                <p class="text-muted small">Pay via bKash, Nagad, or card — quick and secure checkout.</p>
+            </div>
+            <div class="col-md-3">
+                <div style="width:64px;height:64px;background:rgba(59,130,246,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
+                    <i class="bi bi-journal-text" style="font-size:1.8rem;color:#3b82f6;"></i>
+                </div>
+                <h6 class="fw-bold">Trip Planner</h6>
+                <p class="text-muted small">Build detailed itineraries and share them with your group.</p>
+            </div>
+            <div class="col-md-3">
+                <div style="width:64px;height:64px;background:rgba(239,68,68,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
+                    <i class="bi bi-star" style="font-size:1.8rem;color:#ef4444;"></i>
+                </div>
+                <h6 class="fw-bold">Trusted Reviews</h6>
+                <p class="text-muted small">Honest reviews from real travelers to help you plan better.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TOP GUIDES -->
+<section class="section" style="background:var(--surface);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="section-title mb-1">Top Local Guides</h2>
+                <p class="text-muted mb-0">Experienced guides to make your journey memorable</p>
+            </div>
+            <a href="{% url 'accounts:guide_list' %}" class="btn btn-outline-primary btn-sm">View All <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for guide in top_guides %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center p-3 h-100">
+                    {% if guide.guide_photo %}
+                    <img src="{{ guide.guide_photo.url }}" class="rounded-circle mx-auto mb-3" width="90" height="90" style="object-fit:cover;">
+                    {% else %}
+                    <div class="rounded-circle mx-auto mb-3 img-placeholder" style="width:90px;height:90px;"><i class="bi bi-person-fill" style="font-size:2.5rem;"></i></div>
+                    {% endif %}
+                    <h6 class="fw-bold mb-1">{{ guide.user.get_full_name|default:guide.user.username }}</h6>
+                    <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ guide.region }}</p>
+                    <p class="text-muted small mb-3">{{ guide.languages }}</p>
+                    <a href="{% url 'accounts:guide_detail' guide.pk %}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4"><p>No guides yet.</p></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section style="background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:4rem 0;text-align:center;color:#fff;">
+    <div class="container">
+        <h2 style="font-family:'Playfair Display',serif;font-size:2.2rem;margin-bottom:1rem;">Ready to Start Your Adventure?</h2>
+        <p style="color:rgba(255,255,255,.85);font-size:1.1rem;margin-bottom:2rem;">Join thousands of travelers exploring Bangladesh with Safar Sathi.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'accounts:signup' %}" class="btn btn-warning btn-lg px-5">Create Free Account</a>
+            <a href="{% url 'destinations:destination_list' %}" class="btn btn-outline-light btn-lg px-5">Browse Destinations</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
