@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Book {{ accommodation.name }} — Safar Sathi{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1 class="mt-2">Book Your Stay</h1><p style="color:rgba(255,255,255,.8);">{{ accommodation.name }}</p></div></div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card p-4 mb-4">
+                <h5 class="fw-bold mb-1">{{ accommodation.name }}</h5>
+                <p class="text-muted small mb-3"><i class="bi bi-geo-alt me-1"></i>{{ accommodation.destination.name }}</p>
+                <div class="d-flex gap-4 text-muted small">
+                    <span><i class="bi bi-calendar-check me-1"></i>Check-in: {{ accommodation.check_in_time }}</span>
+                    <span><i class="bi bi-calendar-x me-1"></i>Check-out: {{ accommodation.check_out_time }}</span>
+                    <span><i class="bi bi-people me-1"></i>Max {{ accommodation.max_guests }} guests</span>
+                </div>
+                <div class="mt-3 p-3 rounded" style="background:rgba(26,107,60,.08);">
+                    <span class="fw-bold text-primary fs-5">৳{{ accommodation.price_per_night }}</span>
+                    <span class="text-muted">/night</span>
+                </div>
+            </div>
+            <div class="card p-4">
+                <h5 class="fw-bold mb-4">Booking Details</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label">Add a Local Guide (Optional)</label>
+                        <select name="guide" class="form-select">
+                            <option value="">-- No guide needed --</option>
+                            {% for field in form %}{% if field.name == 'guide' %}{% for choice in field.field.choices %}{% if choice.0 %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endif %}{% endfor %}{% endif %}{% endfor %}
+                        </select>
+                        <div class="form-text">Select a local guide to enhance your experience.</div>
+                    </div>
+                    <div class="alert alert-info border-0 small" style="background:rgba(59,130,246,.08);">
+                        <i class="bi bi-info-circle me-2"></i>After booking, you can proceed to payment to confirm your reservation.
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold">Confirm Booking</button>
+                        <a href="{% url 'bookings:accommodation_detail' accommodation.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
