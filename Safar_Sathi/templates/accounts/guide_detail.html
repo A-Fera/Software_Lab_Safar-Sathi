@@ -31,7 +31,9 @@
                     {% if guide.phone %}<li><i class="bi bi-telephone text-primary me-2"></i>{{ guide.phone }}</li>{% endif %}
                     {% if guide.contact_info %}<li><i class="bi bi-chat text-primary me-2"></i>{{ guide.contact_info }}</li>{% endif %}
                 </ul>
-
+                {% if user.is_authenticated and not user_has_reviewed %}
+                <a href="{% url 'reviews:guide_review' guide.pk %}" class="btn btn-outline-primary btn-sm w-100 mt-2"><i class="bi bi-star me-1"></i>Write a Review</a>
+                {% endif %}
                 {% if user.is_staff %}
                 <div class="d-flex gap-2 mt-3">
                     <a href="{% url 'accounts:guide_update' guide.pk %}" class="btn btn-warning btn-sm flex-grow-1">Edit</a>
@@ -53,9 +55,23 @@
                 <p style="line-height:1.8;color:var(--text-muted);">{{ guide.references }}</p>
             </div>
             {% endif %}
-            <div class="card p-4" style="background:rgba(26,107,60,.04);border-color:rgba(26,107,60,.2);">
-                <h5 class="fw-bold mb-2"><i class="bi bi-star me-2 text-primary"></i>Reviews Coming Soon</h5>
-                <p class="text-muted mb-0 small">Guide review functionality will be available in the next phase.</p>
+            <div class="card p-4">
+                <h5 class="fw-bold mb-4">Reviews <span class="badge bg-light text-muted ms-2" style="font-size:.8rem;">{{ reviews.count }}</span></h5>
+                {% for review in reviews %}
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                            <div class="stars small"><i class="bi bi-star-fill"></i> {{ review.rating }}/5</div>
+                        </div>
+                        <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    {% if review.title %}<p class="fw-600 mb-1">{{ review.title }}</p>{% endif %}
+                    <p class="text-muted small mb-0" style="line-height:1.6;">{{ review.content }}</p>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-3">No reviews yet. Be the first to review!</p>
+                {% endfor %}
             </div>
         </div>
     </div>
