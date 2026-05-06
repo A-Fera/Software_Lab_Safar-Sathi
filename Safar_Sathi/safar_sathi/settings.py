@@ -2,8 +2,11 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 SECRET_KEY = 'django-insecure-safar-sathi-secret-key-change-in-production-2025'
+
 DEBUG = True
+
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -17,6 +20,9 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'accounts',
     'destinations',
+    'bookings',
+    'reviews',
+    'itinerary',
 ]
 
 MIDDLEWARE = [
