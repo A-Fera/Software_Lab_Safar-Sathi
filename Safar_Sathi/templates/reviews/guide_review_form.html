@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Review Guide — Safar Sathi{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1 class="mt-2">{% if existing %}Edit{% else %}Write a{% endif %} Review</h1><p style="color:rgba(255,255,255,.8);">{{ guide.user.get_full_name }}</p></div></div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small mt-1">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4">Submit Review</button>
+                        <a href="{% url 'accounts:guide_detail' guide.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

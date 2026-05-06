@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Reviews for {{ accommodation.name }} — Safar Sathi{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1 class="mt-2">Reviews: {{ accommodation.name }}</h1></div></div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% for review in reviews %}
+            <div class="card p-4 mb-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                    <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                </div>
+                <div class="stars mb-2">{% for i in "12345" %}{% if forloop.counter <= review.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}</div>
+                {% if review.title %}<h6 class="fw-bold mb-1">{{ review.title }}</h6>{% endif %}
+                <p class="text-muted mb-0" style="line-height:1.7;">{{ review.content }}</p>
+            </div>
+            {% empty %}
+            <p class="text-center text-muted py-4">No reviews yet.</p>
+            {% endfor %}
+            <div class="text-center mt-4">
+                <a href="{% url 'bookings:accommodation_detail' accommodation.pk %}" class="btn btn-outline-primary">← Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
