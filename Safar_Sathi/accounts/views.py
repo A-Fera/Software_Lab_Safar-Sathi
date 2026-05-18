@@ -6,6 +6,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import CustomUser, LocalGuide
 from .forms import SignUpForm, ProfileUpdateForm, GuideForm
+from reviews.models import GuideReview
 
 
 def staff_required(user):
@@ -62,8 +63,14 @@ class GuideListView(ListView):
 
 def guide_detail_view(request, pk):
     guide = get_object_or_404(LocalGuide, pk=pk)
+    reviews = GuideReview.objects.filter(guide=guide).select_related('user').order_by('-created_at')[:5]
+    user_has_reviewed = False
+    if request.user.is_authenticated and not request.user.is_staff:
+        user_has_reviewed = GuideReview.objects.filter(guide=guide, user=request.user).exists()
     return render(request, 'accounts/guide_detail.html', {
         'guide': guide,
+        'reviews': reviews,
+        'user_has_reviewed': user_has_reviewed,
     })
 
 @user_passes_test(staff_required)
