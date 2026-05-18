@@ -1,21 +1,55 @@
 {% extends 'base.html' %}
 {% block title %}Review {{ destination.name }} — Safar Sathi{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1 class="mt-2">{% if existing %}Edit{% else %}Write a{% endif %} Review</h1><p style="color:rgba(255,255,255,.8);">{{ destination.name }}</p></div></div>
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'destinations:destination_list' %}">Destinations</a></li><li class="breadcrumb-item"><a href="{% url 'destinations:destination_detail' destination.pk %}">{{ destination.name }}</a></li><li class="breadcrumb-item active">Write Review</li></ol></nav>
+        <h1 class="mt-2">{% if existing %}Edit Your{% else %}Write a{% endif %} Review</h1>
+        <p style="color:rgba(255,255,255,.8);">{{ destination.name }}</p>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
+        <div class="col-lg-7">
+            <div class="card p-3 mb-4 d-flex flex-row gap-3 align-items-center">
+                {% if destination.photos.first %}
+                <img src="{{ destination.photos.first.image.url }}" class="rounded" style="width:72px;height:72px;object-fit:cover;flex-shrink:0;">
+                {% else %}
+                <div class="rounded img-placeholder flex-shrink-0" style="width:72px;height:72px;"><i class="bi bi-geo-alt" style="font-size:1.8rem;"></i></div>
+                {% endif %}
+                <div>
+                    <h6 class="fw-bold mb-0" style="color:var(--text-main);">{{ destination.name }}</h6>
+                    <p class="small mb-0" style="color:var(--text-muted);"><i class="bi bi-geo-alt me-1"></i>{{ destination.location }}</p>
+                    <span class="badge-category">{{ destination.get_category_display }}</span>
+                </div>
+            </div>
             <div class="card p-4">
-                <form method="post">
+                <h5 class="fw-bold mb-4" style="color:var(--text-main);">Your Review</h5>
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% for field in form %}
                     <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
+                        <label class="form-label" style="color:var(--text-main);">{{ field.label }}</label>
                         {{ field }}
                         {% if field.errors %}<div class="text-danger small mt-1">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
                     </div>
                     {% endfor %}
-                    <div class="d-flex gap-2 mt-4">
+                    <div class="mb-4">
+                        <label class="form-label" style="color:var(--text-main);">Add Photos <span class="fw-normal small" style="color:var(--text-muted);">(Optional)</span></label>
+                        <input type="file" name="photos" class="form-control" multiple accept="image/*">
+                        <div class="form-text">Upload photos from your visit.</div>
+                    </div>
+                    {% if existing and existing.photos.exists %}
+                    <div class="mb-4">
+                        <label class="form-label small" style="color:var(--text-muted);">Previously uploaded photos</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for photo in existing.photos.all %}
+                            <img src="{{ photo.image.url }}" class="rounded" style="width:70px;height:70px;object-fit:cover;">
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-2 mt-2">
                         <button type="submit" class="btn btn-primary px-4">Submit Review</button>
                         <a href="{% url 'destinations:destination_detail' destination.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
                     </div>

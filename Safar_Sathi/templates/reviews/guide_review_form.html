@@ -1,21 +1,55 @@
 {% extends 'base.html' %}
-{% block title %}Review Guide — Safar Sathi{% endblock %}
+{% block title %}Review {{ guide.user.get_full_name }} — Safar Sathi{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1 class="mt-2">{% if existing %}Edit{% else %}Write a{% endif %} Review</h1><p style="color:rgba(255,255,255,.8);">{{ guide.user.get_full_name }}</p></div></div>
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'accounts:guide_list' %}">Guides</a></li><li class="breadcrumb-item"><a href="{% url 'accounts:guide_detail' guide.pk %}">{{ guide.user.get_full_name }}</a></li><li class="breadcrumb-item active">Write Review</li></ol></nav>
+        <h1 class="mt-2">{% if existing %}Edit Your{% else %}Write a{% endif %} Review</h1>
+        <p style="color:rgba(255,255,255,.8);">{{ guide.user.get_full_name }}</p>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
+        <div class="col-lg-7">
+            <div class="card p-3 mb-4 d-flex flex-row gap-3 align-items-center">
+                {% if guide.guide_photo %}
+                <img src="{{ guide.guide_photo.url }}" class="rounded-circle flex-shrink-0" style="width:72px;height:72px;object-fit:cover;">
+                {% else %}
+                <div class="rounded-circle img-placeholder flex-shrink-0" style="width:72px;height:72px;"><i class="bi bi-person-fill" style="font-size:1.8rem;"></i></div>
+                {% endif %}
+                <div>
+                    <h6 class="fw-bold mb-0" style="color:var(--text-main);">{{ guide.user.get_full_name|default:guide.user.username }}</h6>
+                    <p class="small mb-0" style="color:var(--text-muted);"><i class="bi bi-geo-alt me-1"></i>{{ guide.region }}</p>
+                    <p class="small mb-0" style="color:var(--text-muted);"><i class="bi bi-translate me-1"></i>{{ guide.languages }}</p>
+                </div>
+            </div>
             <div class="card p-4">
-                <form method="post">
+                <h5 class="fw-bold mb-4" style="color:var(--text-main);">Your Review</h5>
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% for field in form %}
                     <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
+                        <label class="form-label" style="color:var(--text-main);">{{ field.label }}</label>
                         {{ field }}
                         {% if field.errors %}<div class="text-danger small mt-1">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
                     </div>
                     {% endfor %}
-                    <div class="d-flex gap-2 mt-4">
+                    <div class="mb-4">
+                        <label class="form-label" style="color:var(--text-main);">Add Photos <span class="fw-normal small" style="color:var(--text-muted);">(Optional)</span></label>
+                        <input type="file" name="photos" class="form-control" multiple accept="image/*">
+                        <div class="form-text">Upload photos from your trip with this guide.</div>
+                    </div>
+                    {% if existing and existing.photos.exists %}
+                    <div class="mb-4">
+                        <label class="form-label small" style="color:var(--text-muted);">Previously uploaded photos</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for photo in existing.photos.all %}
+                            <img src="{{ photo.image.url }}" class="rounded" style="width:70px;height:70px;object-fit:cover;">
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-2 mt-2">
                         <button type="submit" class="btn btn-primary px-4">Submit Review</button>
                         <a href="{% url 'accounts:guide_detail' guide.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
                     </div>

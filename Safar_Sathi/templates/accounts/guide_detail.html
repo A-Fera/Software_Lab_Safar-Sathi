@@ -18,8 +18,11 @@
                 <div class="rounded-circle img-placeholder mx-auto mb-3" style="width:130px;height:130px;"><i class="bi bi-person-fill" style="font-size:3.5rem;"></i></div>
                 {% endif %}
                 <h5 class="fw-bold mb-1">{{ guide.user.get_full_name|default:guide.user.username }}</h5>
-                <div class="stars mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i> <span class="rating-num">{{ guide.rating }}</span></div>
-                <p class="text-muted small">{{ guide.reviews.count }} reviews</p>
+                <div class="stars mb-2">
+                    {% for i in "12345" %}{% if forloop.counter <= guide.rating|floatformat:"0"|add:"0" %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}
+                    <span class="rating-num">{{ guide.rating }}</span>
+                </div>
+                <p class="text-muted small">{{ reviews.count }} reviews</p>
             </div>
             <div class="sidebar-card">
                 <h6 class="fw-bold mb-3">Details</h6>
@@ -31,7 +34,7 @@
                     {% if guide.phone %}<li><i class="bi bi-telephone text-primary me-2"></i>{{ guide.phone }}</li>{% endif %}
                     {% if guide.contact_info %}<li><i class="bi bi-chat text-primary me-2"></i>{{ guide.contact_info }}</li>{% endif %}
                 </ul>
-                {% if user.is_authenticated and not user_has_reviewed %}
+                {% if user.is_authenticated and not user.is_staff and not user_has_reviewed %}
                 <a href="{% url 'reviews:guide_review' guide.pk %}" class="btn btn-outline-primary btn-sm w-100 mt-2"><i class="bi bi-star me-1"></i>Write a Review</a>
                 {% endif %}
                 {% if user.is_staff %}
@@ -49,12 +52,6 @@
                 <p style="line-height:1.8;color:var(--text-muted);">{{ guide.description }}</p>
             </div>
             {% endif %}
-            {% if guide.references %}
-            <div class="card p-4 mb-4">
-                <h5 class="fw-bold mb-3">References</h5>
-                <p style="line-height:1.8;color:var(--text-muted);">{{ guide.references }}</p>
-            </div>
-            {% endif %}
             <div class="card p-4">
                 <h5 class="fw-bold mb-4">Reviews <span class="badge bg-light text-muted ms-2" style="font-size:.8rem;">{{ reviews.count }}</span></h5>
                 {% for review in reviews %}
@@ -66,11 +63,14 @@
                         </div>
                         <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
                     </div>
-                    {% if review.title %}<p class="fw-600 mb-1">{{ review.title }}</p>{% endif %}
+                    {% if review.title %}<p class="fw-bold mb-1 small">{{ review.title }}</p>{% endif %}
                     <p class="text-muted small mb-0" style="line-height:1.6;">{{ review.content }}</p>
+                    {% if review.photos.exists %}
+                    <div class="d-flex flex-wrap gap-2 mt-2">{% for photo in review.photos.all %}<img src="{{ photo.image.url }}" class="rounded" style="width:70px;height:70px;object-fit:cover;">{% endfor %}</div>
+                    {% endif %}
                 </div>
                 {% empty %}
-                <p class="text-muted text-center py-3">No reviews yet. Be the first to review!</p>
+                <p class="text-muted text-center py-3">No reviews yet.{% if not user.is_staff %} Be the first to review!{% endif %}</p>
                 {% endfor %}
             </div>
         </div>
