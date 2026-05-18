@@ -12,7 +12,7 @@
                     <strong>৳{{ booking.total_amount }}</strong>
                 </div>
                 {% if booking.accommodation %}
-                <div class="text-muted small">{{ booking.accommodation.name }}</div>
+                <div class="text-muted small">{{ booking.accommodation.name }} — {{ booking.accommodation.destination.name }}</div>
                 {% endif %}
                 <hr>
                 <div class="d-flex justify-content-between fw-bold fs-5">
@@ -31,10 +31,12 @@
                         {% if field.errors %}<div class="text-danger small mt-1">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
                     </div>
                     {% endfor %}
-                    <div class="alert alert-warning border-0 small mt-3" style="background:rgba(245,158,11,.1);">
+                    <div class="alert border-0 small" style="background:rgba(245,158,11,.1);color:#92400e;">
                         <i class="bi bi-shield-lock me-2"></i>This is a demo. No real payment is processed.
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 py-2 mt-2 fw-bold"><i class="bi bi-credit-card me-2"></i>Pay ৳{{ booking.total_amount }}</button>
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-2 fw-bold">
+                        <i class="bi bi-credit-card me-2"></i>Pay ৳{{ booking.total_amount }}
+                    </button>
                 </form>
             </div>
         </div>

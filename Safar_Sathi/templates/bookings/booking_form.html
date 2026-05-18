@@ -1,40 +1,97 @@
 {% extends 'base.html' %}
 {% block title %}Book {{ accommodation.name }} — Safar Sathi{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1 class="mt-2">Book Your Stay</h1><p style="color:rgba(255,255,255,.8);">{{ accommodation.name }}</p></div></div>
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'bookings:accommodation_list' %}">Stays</a></li><li class="breadcrumb-item"><a href="{% url 'bookings:accommodation_detail' accommodation.pk %}">{{ accommodation.name }}</a></li><li class="breadcrumb-item active">Book</li></ol></nav>
+        <h1 class="mt-2">Book Your Stay</h1>
+        <p style="color:rgba(255,255,255,.8);">{{ accommodation.name }}</p>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-7">
+            <!-- STAY SUMMARY -->
             <div class="card p-4 mb-4">
-                <h5 class="fw-bold mb-1">{{ accommodation.name }}</h5>
-                <p class="text-muted small mb-3"><i class="bi bi-geo-alt me-1"></i>{{ accommodation.destination.name }}</p>
-                <div class="d-flex gap-4 text-muted small">
+                <h6 class="fw-bold mb-3" style="color:var(--text-main);"><i class="bi bi-building me-2" style="color:var(--primary);"></i>Stay Summary</h6>
+                <h5 class="fw-bold mb-1" style="color:var(--text-main);">{{ accommodation.name }}</h5>
+                <p class="small mb-2" style="color:var(--text-muted);">
+                    <i class="bi bi-geo-alt me-1"></i>{{ accommodation.destination.name }}{% if accommodation.destination.division %} — {{ accommodation.destination.get_division_display }} Division{% endif %}
+                </p>
+                <div class="d-flex gap-4 small flex-wrap mb-3" style="color:var(--text-muted);">
                     <span><i class="bi bi-calendar-check me-1"></i>Check-in: {{ accommodation.check_in_time }}</span>
                     <span><i class="bi bi-calendar-x me-1"></i>Check-out: {{ accommodation.check_out_time }}</span>
                     <span><i class="bi bi-people me-1"></i>Max {{ accommodation.max_guests }} guests</span>
                 </div>
-                <div class="mt-3 p-3 rounded" style="background:rgba(26,107,60,.08);">
-                    <span class="fw-bold text-primary fs-5">৳{{ accommodation.price_per_night }}</span>
-                    <span class="text-muted">/night</span>
+                <div class="p-3 rounded" style="background:rgba(26,107,60,.08);">
+                    <span class="fw-bold fs-5" style="color:var(--primary);">৳{{ accommodation.price_per_night }}</span>
+                    <span style="color:var(--text-muted);">/night</span>
                 </div>
             </div>
+
+            <!-- GUIDE SELECTION -->
             <div class="card p-4">
-                <h5 class="fw-bold mb-4">Booking Details</h5>
+                <h5 class="fw-bold mb-1" style="color:var(--text-main);">Select a Local Guide <span class="fw-normal small" style="color:var(--text-muted);">(Optional)</span></h5>
+                <p class="small mb-4" style="color:var(--text-muted);">
+                    <i class="bi bi-geo-alt me-1"></i>Showing guides available in
+                    <strong>{{ accommodation.destination.get_division_display|default:accommodation.destination.location }}</strong> area
+                </p>
                 <form method="post">
                     {% csrf_token %}
-                    <div class="mb-4">
-                        <label class="form-label">Add a Local Guide (Optional)</label>
-                        <select name="guide" class="form-select">
-                            <option value="">-- No guide needed --</option>
-                            {% for field in form %}{% if field.name == 'guide' %}{% for choice in field.field.choices %}{% if choice.0 %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endif %}{% endfor %}{% endif %}{% endfor %}
-                        </select>
-                        <div class="form-text">Select a local guide to enhance your experience.</div>
+                    {% if area_guides %}
+                    <!-- No guide option -->
+                    <div class="mb-3">
+                        <label class="guide-option d-flex gap-3 align-items-start p-3 rounded border mb-2" style="cursor:pointer;transition:border-color .2s;" onclick="selectGuide(this, '')">
+                            <input type="radio" name="guide" value="" class="mt-1" checked style="accent-color:var(--primary);">
+                            <div>
+                                <strong style="color:var(--text-main);">No Guide Needed</strong>
+                                <div class="small" style="color:var(--text-muted);">Explore independently</div>
+                            </div>
+                        </label>
+
+                        {% for guide in area_guides %}
+                        <label class="guide-option d-flex gap-3 align-items-start p-3 rounded border mb-2" style="cursor:pointer;transition:border-color .2s;" onclick="selectGuide(this, '{{ guide.pk }}')">
+                            <input type="radio" name="guide" value="{{ guide.pk }}" class="mt-1" style="accent-color:var(--primary);">
+                            <div class="d-flex gap-3 align-items-start w-100">
+                                {% if guide.guide_photo %}
+                                <img src="{{ guide.guide_photo.url }}" class="rounded-circle flex-shrink-0" width="48" height="48" style="object-fit:cover;">
+                                {% else %}
+                                <div class="rounded-circle flex-shrink-0 img-placeholder" style="width:48px;height:48px;"><i class="bi bi-person-fill"></i></div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <strong style="color:var(--text-main);">{{ guide.user.get_full_name|default:guide.user.username }}</strong>
+                                        <span class="fw-bold small" style="color:var(--primary);">৳{{ guide.hourly_rate }}/hr</span>
+                                    </div>
+                                    <div class="small mb-1" style="color:var(--text-muted);">
+                                        <i class="bi bi-geo-alt me-1"></i>{{ guide.region }}
+                                        &nbsp;·&nbsp;<i class="bi bi-translate me-1"></i>{{ guide.languages }}
+                                        &nbsp;·&nbsp;<i class="bi bi-briefcase me-1"></i>{{ guide.experience_years }} yrs exp
+                                    </div>
+                                    {% if guide.rating > 0 %}
+                                    <div class="stars" style="font-size:.75rem;"><i class="bi bi-star-fill"></i> {{ guide.rating }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
                     </div>
-                    <div class="alert alert-info border-0 small" style="background:rgba(59,130,246,.08);">
-                        <i class="bi bi-info-circle me-2"></i>After booking, you can proceed to payment to confirm your reservation.
+                    {% else %}
+                    <div class="p-3 rounded mb-4 small" style="background:rgba(59,130,246,.06);color:var(--text-muted);border:1px solid rgba(59,130,246,.15);">
+                        <i class="bi bi-info-circle me-2" style="color:#3b82f6;"></i>
+                        No local guides are registered in this area yet. You can still proceed with your booking.
                     </div>
-                    <div class="d-flex gap-3 mt-4">
-                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold">Confirm Booking</button>
+                    {% endif %}
+
+                    <div class="p-3 rounded mb-4 small" style="background:rgba(26,107,60,.06);border:1px solid rgba(26,107,60,.15);">
+                        <i class="bi bi-info-circle me-2" style="color:var(--primary);"></i>
+                        After booking, proceed to payment to confirm. Confirmed bookings appear in your <a href="{% url 'itinerary:itinerary_list' %}">My Trips</a> tracker.
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold">
+                            <i class="bi bi-calendar-check me-2"></i>Confirm Booking
+                        </button>
                         <a href="{% url 'bookings:accommodation_detail' accommodation.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
                     </div>
                 </form>
@@ -42,4 +99,20 @@
         </div>
     </div>
 </div>
+<script>
+function selectGuide(label, value) {
+    document.querySelectorAll('.guide-option').forEach(el => {
+        el.style.borderColor = '#e5e7eb';
+        el.style.background = '#fff';
+    });
+    label.style.borderColor = '#1a6b3c';
+    label.style.background = 'rgba(26,107,60,.04)';
+    label.querySelector('input[type=radio]').checked = true;
+}
+// Highlight default on load
+document.addEventListener('DOMContentLoaded', function() {
+    const first = document.querySelector('.guide-option');
+    if (first) { first.style.borderColor = '#1a6b3c'; first.style.background = 'rgba(26,107,60,.04)'; }
+});
+</script>
 {% endblock %}

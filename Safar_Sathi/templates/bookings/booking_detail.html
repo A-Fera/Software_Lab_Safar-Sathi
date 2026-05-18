@@ -1,33 +1,45 @@
 {% extends 'base.html' %}
 {% block title %}Booking #{{ booking.pk }} — Safar Sathi{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1 class="mt-2">Booking #{{ booking.pk }}</h1></div></div>
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'bookings:my_bookings' %}">My Bookings</a></li><li class="breadcrumb-item active">Booking #{{ booking.pk }}</li></ol></nav>
+        <h1 class="mt-2">Booking #{{ booking.pk }}</h1>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-7">
             <div class="card p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <h5 class="fw-bold mb-0">Booking Details</h5>
-                    <span class="badge badge-status-{{ booking.status }} px-3 py-2">{{ booking.get_status_display }}</span>
+                    <span class="badge badge-status-{{ booking.status }}">{{ booking.get_status_display }}</span>
                 </div>
                 <ul class="list-unstyled" style="line-height:2.5;font-size:.95rem;">
                     {% if booking.accommodation %}
-                    <li><strong>Accommodation:</strong> <a href="{% url 'bookings:accommodation_detail' booking.accommodation.pk %}">{{ booking.accommodation.name }}</a></li>
-                    <li><strong>Destination:</strong> {{ booking.accommodation.destination.name }}</li>
+                    <li><i class="bi bi-building text-primary me-2"></i><strong>Accommodation:</strong>
+                        <a href="{% url 'bookings:accommodation_detail' booking.accommodation.pk %}">{{ booking.accommodation.name }}</a></li>
+                    <li><i class="bi bi-geo-alt text-primary me-2"></i><strong>Destination:</strong> {{ booking.accommodation.destination.name }}</li>
                     {% endif %}
                     {% if booking.guide %}
-                    <li><strong>Guide:</strong> <a href="{% url 'accounts:guide_detail' booking.guide.pk %}">{{ booking.guide.user.get_full_name }}</a></li>
+                    <li><i class="bi bi-person-badge text-primary me-2"></i><strong>Guide:</strong>
+                        <a href="{% url 'accounts:guide_detail' booking.guide.pk %}">{{ booking.guide.user.get_full_name }}</a></li>
                     {% endif %}
-                    <li><strong>Total Amount:</strong> <span class="text-primary fw-bold">৳{{ booking.total_amount }}</span></li>
-                    <li><strong>Booked On:</strong> {{ booking.created_at|date:"M d, Y H:i" }}</li>
+                    <li><i class="bi bi-currency-dollar text-primary me-2"></i><strong>Total Amount:</strong>
+                        <span class="text-primary fw-bold">৳{{ booking.total_amount }}</span></li>
+                    <li><i class="bi bi-calendar text-primary me-2"></i><strong>Booked On:</strong> {{ booking.created_at|date:"M d, Y H:i" }}</li>
                 </ul>
                 {% if booking.status == 'pending' %}
                 <div class="d-flex gap-3 mt-3">
-                    <a href="{% url 'bookings:payment_create' booking.pk %}" class="btn btn-primary px-4"><i class="bi bi-credit-card me-2"></i>Pay Now</a>
-                    <a href="{% url 'bookings:booking_cancel' booking.pk %}" class="btn btn-outline-danger px-4">Cancel Booking</a>
+                    <a href="{% url 'bookings:payment_create' booking.pk %}" class="btn btn-primary px-4">
+                        <i class="bi bi-credit-card me-2"></i>Pay Now
+                    </a>
+                    <a href="{% url 'bookings:booking_cancel' booking.pk %}" class="btn btn-outline-danger px-4">Cancel</a>
                 </div>
                 {% elif booking.status == 'confirmed' %}
-                <div class="alert alert-success border-0 mt-3 mb-0"><i class="bi bi-check-circle me-2"></i>Your booking is confirmed!</div>
+                <div class="alert border-0 mt-3 mb-0" style="background:rgba(26,107,60,.08);">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>Your booking is confirmed!
+                </div>
                 {% endif %}
             </div>
             {% if payments %}
@@ -42,7 +54,8 @@
                         </div>
                         <div class="text-end">
                             <div class="text-primary fw-bold">৳{{ payment.amount }}</div>
-                            <span class="badge {% if payment.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ payment.get_status_display }}</span>
+                            <span class="badge {% if payment.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                {{ payment.get_status_display }}</span>
                         </div>
                     </div>
                     <div class="text-muted small mt-1">{{ payment.payment_date|date:"M d, Y H:i" }}</div>
