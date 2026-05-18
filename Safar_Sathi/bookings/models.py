@@ -2,6 +2,14 @@ from django.db import models
 from accounts.models import CustomUser, LocalGuide
 from destinations.models import Destination
 
+class AccommodationPhoto(models.Model):
+    image = models.ImageField(upload_to='accommodations/photos/')
+    caption = models.CharField(max_length=300, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Photo {self.pk}"
+
 class Accommodation(models.Model):
     ACCOMMODATION_TYPES = [
         ('hotel', 'Hotel'),
@@ -28,7 +36,7 @@ class Accommodation(models.Model):
     max_guests = models.IntegerField(default=2)
     check_in_time = models.TimeField(default='14:00')
     check_out_time = models.TimeField(default='11:00')
-    image = models.ImageField(upload_to='accommodations/', blank=True, null=True)
+    photos = models.ManyToManyField(AccommodationPhoto, blank=True, related_name='accommodations')
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=0)
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -48,6 +56,9 @@ class Accommodation(models.Model):
             self.rating = round(avg, 1)
             self.save()
 
+    def first_photo(self):
+        return self.photos.first()
+
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -65,6 +76,9 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Booking #{self.pk} by {self.user.username}"
+
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.status, self.status)
 
 class Payment(models.Model):
     PAYMENT_METHODS = [
@@ -89,3 +103,9 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment for Booking #{self.booking.pk}"
+
+    def get_payment_method_display(self):
+        return dict(self.PAYMENT_METHODS).get(self.payment_method, self.payment_method)
+
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.status, self.status)

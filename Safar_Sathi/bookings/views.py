@@ -3,12 +3,13 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.views.generic import ListView
 from django.db.models import Q
-from .models import Accommodation, Booking, Payment
+from .models import Accommodation, AccommodationPhoto, Booking, Payment
 from .forms import AccommodationForm, BookingForm, PaymentForm
-from reviews.models import AccommodationReview
+
 
 def staff_required(user):
     return user.is_staff
+
 
 class AccommodationListView(ListView):
     model = Accommodation
@@ -18,10 +19,11 @@ class AccommodationListView(ListView):
 
     def get_queryset(self):
         qs = Accommodation.objects.select_related('destination').all()
-        search = self.request.GET.get('search')
-        actype = self.request.GET.get('type')
+        search = self.request.GET.get('search', '').strip()
+        actype = self.request.GET.get('type', '')
         if search:
-            qs = qs.filter(Q(name__icontains=search) | Q(destination__name__icontains=search))
+            qs = qs.filter(
+                Q(name__icontains=search) | Q(destination__name__icontains=search))
         if actype:
             qs = qs.filter(accommodation_type=actype)
         return qs
@@ -33,44 +35,59 @@ class AccommodationListView(ListView):
         ctx['selected_type'] = self.request.GET.get('type', '')
         return ctx
 
+
 def accommodation_detail_view(request, pk):
     accommodation = get_object_or_404(Accommodation, pk=pk)
-    reviews = AccommodationReview.objects.filter(accommodation=accommodation).select_related('user').prefetch_related('photos')[:10]
+    from reviews.models import AccommodationReview
+    reviews = AccommodationReview.objects.filter(
+        accommodation=accommodation).select_related('user').order_by('-created_at')[:10]
     user_can_review = False
-    if request.user.is_authenticated:
-        user_can_review = not AccommodationReview.objects.filter(accommodation=accommodation, user=request.user).exists()
+    if request.user.is_authenticated and not request.user.is_staff:
+        user_can_review = not AccommodationReview.objects.filter(
+            accommodation=accommodation, user=request.user).exists()
     return render(request, 'bookings/accommodation_detail.html', {
         'accommodation': accommodation,
         'reviews': reviews,
         'user_can_review': user_can_review,
     })
 
+
 @user_passes_test(staff_required)
 def accommodation_create_view(request):
     if request.method == 'POST':
-        form = AccommodationForm(request.POST, request.FILES)
+        form = AccommodationForm(request.POST)
         if form.is_valid():
             acc = form.save(commit=False)
             acc.created_by = request.user
             acc.save()
+            for f in request.FILES.getlist('photos'):
+                photo = AccommodationPhoto.objects.create(image=f)
+                acc.photos.add(photo)
             messages.success(request, 'Accommodation created!')
             return redirect('bookings:accommodation_detail', pk=acc.pk)
     else:
         form = AccommodationForm()
-    return render(request, 'bookings/accommodation_form.html', {'form': form, 'title': 'Add Accommodation'})
+    return render(request, 'bookings/accommodation_form.html',
+                  {'form': form, 'title': 'Add Accommodation'})
+
 
 @user_passes_test(staff_required)
 def accommodation_update_view(request, pk):
     accommodation = get_object_or_404(Accommodation, pk=pk)
     if request.method == 'POST':
-        form = AccommodationForm(request.POST, request.FILES, instance=accommodation)
+        form = AccommodationForm(request.POST, instance=accommodation)
         if form.is_valid():
             form.save()
+            for f in request.FILES.getlist('photos'):
+                photo = AccommodationPhoto.objects.create(image=f)
+                accommodation.photos.add(photo)
             messages.success(request, 'Accommodation updated!')
             return redirect('bookings:accommodation_detail', pk=accommodation.pk)
     else:
         form = AccommodationForm(instance=accommodation)
-    return render(request, 'bookings/accommodation_form.html', {'form': form, 'title': 'Edit Accommodation'})
+    return render(request, 'bookings/accommodation_form.html',
+                  {'form': form, 'title': 'Edit Accommodation', 'accommodation': accommodation})
+
 
 @user_passes_test(staff_required)
 def accommodation_delete_view(request, pk):
@@ -79,26 +96,40 @@ def accommodation_delete_view(request, pk):
         accommodation.delete()
         messages.success(request, 'Accommodation deleted.')
         return redirect('bookings:accommodation_list')
-    return render(request, 'bookings/accommodation_confirm_delete.html', {'accommodation': accommodation})
+    return render(request, 'bookings/accommodation_confirm_delete.html',
+                  {'accommodation': accommodation})
+
 
 @login_required
 def booking_create_view(request, accommodation_pk):
     accommodation = get_object_or_404(Accommodation, pk=accommodation_pk)
+    from accounts.models import LocalGuide
+    # Show only guides from the same division/area
+    destination_division = accommodation.destination.division
+    if destination_division:
+        area_guides = LocalGuide.objects.filter(region__icontains=destination_division)
+    else:
+        city = accommodation.destination.location.split(',')[0].strip()
+        area_guides = LocalGuide.objects.filter(region__icontains=city)
+
     if request.method == 'POST':
-        form = BookingForm(request.POST)
+        form = BookingForm(request.POST, area_guides=area_guides)
         if form.is_valid():
             booking = form.save(commit=False)
             booking.user = request.user
             booking.accommodation = accommodation
             booking.total_amount = accommodation.price_per_night
             booking.save()
-            messages.success(request, 'Booking created successfully!')
+            messages.success(request, 'Booking created!')
             return redirect('bookings:booking_detail', pk=booking.pk)
     else:
-        form = BookingForm()
+        form = BookingForm(area_guides=area_guides)
     return render(request, 'bookings/booking_form.html', {
-        'form': form, 'accommodation': accommodation
+        'form': form,
+        'accommodation': accommodation,
+        'area_guides': area_guides,
     })
+
 
 @login_required
 def booking_detail_view(request, pk):
@@ -108,10 +139,14 @@ def booking_detail_view(request, pk):
         'booking': booking, 'payments': payments
     })
 
+
 @login_required
 def my_bookings_view(request):
-    bookings = Booking.objects.filter(user=request.user).select_related('accommodation', 'guide').order_by('-created_at')
+    bookings = Booking.objects.filter(
+        user=request.user).select_related(
+        'accommodation', 'guide').order_by('-created_at')
     return render(request, 'bookings/my_bookings.html', {'bookings': bookings})
+
 
 @login_required
 def payment_create_view(request, booking_pk):
@@ -130,7 +165,9 @@ def payment_create_view(request, booking_pk):
             return redirect('bookings:booking_detail', pk=booking.pk)
     else:
         form = PaymentForm()
-    return render(request, 'bookings/payment_form.html', {'form': form, 'booking': booking})
+    return render(request, 'bookings/payment_form.html',
+                  {'form': form, 'booking': booking})
+
 
 @login_required
 def booking_cancel_view(request, pk):
