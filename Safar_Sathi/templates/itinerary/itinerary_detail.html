@@ -8,10 +8,12 @@
             <div>
                 <span class="badge badge-status-{{ itinerary.status }} mb-2">{{ itinerary.get_status_display }}</span>
                 <h1>{{ itinerary.title|default:itinerary.name }}</h1>
-                <p style="color:rgba(255,255,255,.8);"><i class="bi bi-calendar me-1"></i>{{ itinerary.start_date|date:"M d" }} – {{ itinerary.end_date|date:"M d, Y" }} &nbsp;·&nbsp; {{ itinerary.total_days }} days</p>
+                <p style="color:rgba(255,255,255,.8);"><i class="bi bi-calendar me-1"></i>{{ itinerary.start_date|date:"M d" }} – {{ itinerary.end_date|date:"M d, Y" }} · {{ itinerary.total_days }} days</p>
             </div>
-            <div class="d-flex gap-2">
-                <a href="{% url 'itinerary:item_create' itinerary.pk %}" class="btn btn-warning btn-sm"><i class="bi bi-plus me-1"></i>Add Activity</a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'itinerary:item_create' itinerary.pk %}" class="btn btn-warning btn-sm fw-bold">
+                    <i class="bi bi-plus me-1"></i>Add Activity
+                </a>
                 <a href="{% url 'itinerary:itinerary_update' itinerary.pk %}" class="btn btn-outline-light btn-sm">Edit</a>
                 <a href="{% url 'itinerary:itinerary_delete' itinerary.pk %}" class="btn btn-outline-light btn-sm">Delete</a>
             </div>
@@ -19,30 +21,30 @@
     </div>
 </div>
 <div class="container py-5">
-    <!-- SUMMARY STATS -->
+    <!-- STATS -->
     <div class="row g-3 mb-5">
-        <div class="col-md-3 col-6">
+        <div class="col-6 col-md-3">
             <div class="card p-3 text-center">
                 <div style="font-size:1.8rem;font-weight:700;color:var(--primary);">{{ itinerary.total_days }}</div>
-                <div class="text-muted small">Total Days</div>
+                <div class="small" style="color:var(--text-muted);">Total Days</div>
             </div>
         </div>
-        <div class="col-md-3 col-6">
+        <div class="col-6 col-md-3">
             <div class="card p-3 text-center">
                 <div style="font-size:1.8rem;font-weight:700;color:var(--primary);">{{ itinerary.total_destinations }}</div>
-                <div class="text-muted small">Destinations</div>
+                <div class="small" style="color:var(--text-muted);">Destinations</div>
             </div>
         </div>
-        <div class="col-md-3 col-6">
+        <div class="col-6 col-md-3">
             <div class="card p-3 text-center">
                 <div style="font-size:1.8rem;font-weight:700;color:var(--primary);">{{ itinerary.total_items }}</div>
-                <div class="text-muted small">Activities</div>
+                <div class="small" style="color:var(--text-muted);">Activities</div>
             </div>
         </div>
-        <div class="col-md-3 col-6">
+        <div class="col-6 col-md-3">
             <div class="card p-3 text-center">
                 <div style="font-size:1.8rem;font-weight:700;color:var(--primary);">৳{{ itinerary.total_cost }}</div>
-                <div class="text-muted small">Est. Cost</div>
+                <div class="small" style="color:var(--text-muted);">Est. Cost</div>
             </div>
         </div>
     </div>
@@ -53,17 +55,20 @@
     </div>
     {% endif %}
 
-    <!-- ITINERARY ITEMS -->
+    <!-- SCHEDULE -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold mb-0">Schedule</h4>
-        <a href="{% url 'itinerary:item_create' itinerary.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Add Activity</a>
+        <h4 class="fw-bold mb-0" style="color:var(--text-main);">Schedule</h4>
+        <a href="{% url 'itinerary:item_create' itinerary.pk %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus me-1"></i>Add Activity
+        </a>
     </div>
+
     {% regroup itinerary.items.all by start_date as items_by_date %}
     {% if items_by_date %}
     {% for date_group in items_by_date %}
     <div class="card mb-3">
         <div class="card-header" style="background:rgba(26,107,60,.08);border-bottom:1px solid var(--border);">
-            <strong><i class="bi bi-calendar me-2 text-primary"></i>{{ date_group.grouper|date:"l, M d, Y" }}</strong>
+            <strong style="color:var(--primary);"><i class="bi bi-calendar me-2"></i>{{ date_group.grouper|date:"l, M d, Y" }}</strong>
         </div>
         <div class="card-body p-0">
             {% for item in date_group.list %}
@@ -71,16 +76,16 @@
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                     <div class="d-flex gap-3 align-items-start">
                         <div style="width:36px;height:36px;background:rgba(26,107,60,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
-                            <i class="bi bi-{% if item.item_type == 'destination' %}geo-alt{% elif item.item_type == 'accommodation' %}building{% elif item.item_type == 'transport' %}truck{% elif item.item_type == 'meal' %}cup-hot{% elif item.item_type == 'activity' %}activity{% else %}tag{% endif %} text-primary small"></i>
+                            <i class="bi bi-{% if item.item_type == 'destination' %}geo-alt{% elif item.item_type == 'accommodation' %}building{% elif item.item_type == 'transport' %}truck{% elif item.item_type == 'meal' %}cup-hot{% else %}tag{% endif %} text-primary small"></i>
                         </div>
                         <div>
-                            <strong>{{ item.title }}</strong>
-                            {% if item.destination %}<span class="text-muted small ms-2">— {{ item.destination.name }}</span>{% endif %}
-                            {% if item.notes %}<p class="text-muted small mb-0 mt-1" style="line-height:1.5;">{{ item.notes }}</p>{% endif %}
+                            <strong style="color:var(--text-main);">{{ item.title }}</strong>
+                            {% if item.destination %}<span class="small ms-2" style="color:var(--text-muted);">— {{ item.destination.name }}</span>{% endif %}
+                            {% if item.notes %}<p class="small mb-0 mt-1" style="line-height:1.5;color:var(--text-muted);">{{ item.notes }}</p>{% endif %}
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        {% if item.estimated_cost %}<span class="text-primary small fw-bold">৳{{ item.estimated_cost }}</span>{% endif %}
+                    <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                        {% if item.estimated_cost %}<span class="fw-bold small" style="color:var(--primary);">৳{{ item.estimated_cost }}</span>{% endif %}
                         <span class="badge-category" style="font-size:.72rem;">{{ item.get_item_type_display }}</span>
                         <div class="d-flex gap-1">
                             <a href="{% url 'itinerary:item_update' itinerary.pk item.pk %}" class="btn btn-outline-secondary btn-sm py-0 px-2">Edit</a>
@@ -94,10 +99,12 @@
     </div>
     {% endfor %}
     {% else %}
-    <div class="card p-5 text-center text-muted">
-        <i class="bi bi-calendar-plus" style="font-size:3rem;opacity:.3;"></i>
-        <h6 class="mt-3">No activities planned yet</h6>
-        <a href="{% url 'itinerary:item_create' itinerary.pk %}" class="btn btn-outline-primary mt-2 btn-sm">Add First Activity</a>
+    <div class="card p-5 text-center" style="border-style:dashed;border-color:var(--border);">
+        <i class="bi bi-calendar-plus" style="font-size:3rem;opacity:.3;color:var(--primary);"></i>
+        <h6 class="mt-3 fw-bold" style="color:var(--text-main);">No activities planned yet</h6>
+        <a href="{% url 'itinerary:item_create' itinerary.pk %}" class="btn btn-outline-primary mt-2 btn-sm">
+            Add First Activity
+        </a>
     </div>
     {% endif %}
 </div>

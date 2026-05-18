@@ -1,23 +1,63 @@
 {% extends 'base.html' %}
-{% block title %}Add Activity — Safar Sathi{% endblock %}
+{% block title %}{{ title }} — Safar Sathi{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1 class="mt-2">{% if item %}Edit{% else %}Add{% endif %} Activity</h1></div></div>
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'itinerary:itinerary_list' %}">My Trips</a></li><li class="breadcrumb-item"><a href="{% url 'itinerary:itinerary_detail' itinerary.pk %}">{{ itinerary.title }}</a></li><li class="breadcrumb-item active">{{ title }}</li></ol></nav>
+        <h1 class="mt-2">{{ title }}</h1>
+    </div>
+</div>
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
+        <div class="col-lg-7">
             <div class="card p-4">
                 <form method="post">
                     {% csrf_token %}
-                    {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}<div class="text-danger small mt-1">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Activity Type</label>
+                            {{ form.item_type }}
+                            {% if form.item_type.errors %}<div class="text-danger small mt-1">{{ form.item_type.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Destination <span class="text-muted fw-normal">(optional)</span></label>
+                            {{ form.destination }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Accommodation <span class="text-muted fw-normal">(optional)</span></label>
+                            {{ form.accommodation }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}<div class="text-danger small mt-1">{{ form.start_date.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date <span class="text-muted fw-normal">(optional)</span></label>
+                            {{ form.end_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estimated Cost (৳) <span class="text-muted fw-normal">(optional)</span></label>
+                            {{ form.estimated_cost }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                            {{ form.notes }}
+                        </div>
                     </div>
-                    {% endfor %}
+                    {% if form.errors %}
+                    <div class="alert border-0 mt-3" style="background:rgba(239,68,68,.08);color:#991b1b;">
+                        {% for field, errors in form.errors.items %}{% for error in errors %}<div><i class="bi bi-exclamation-circle me-1"></i>{{ field|title }}: {{ error }}</div>{% endfor %}{% endfor %}
+                    </div>
+                    {% endif %}
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary px-4">Save Activity</button>
-                        <a href="{% url 'itinerary:itinerary_detail' itinerary_pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <a href="{% url 'itinerary:itinerary_detail' itinerary.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
                     </div>
                 </form>
             </div>

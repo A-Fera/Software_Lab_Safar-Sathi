@@ -3,19 +3,34 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Itinerary, ItineraryItem
 from .forms import ItineraryForm, ItineraryItemForm
+from bookings.models import Booking
+
 
 @login_required
 def itinerary_list_view(request):
     itineraries = Itinerary.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'itinerary/itinerary_list.html', {'itineraries': itineraries})
+    # Only show confirmed/completed bookings as stay tracker
+    booked_stays = Booking.objects.filter(
+        user=request.user,
+        status__in=['confirmed', 'completed']
+    ).select_related('accommodation', 'accommodation__destination', 'guide').order_by('-created_at')
+    return render(request, 'itinerary/itinerary_list.html', {
+        'itineraries': itineraries,
+        'booked_stays': booked_stays,
+    })
+
 
 @login_required
 def itinerary_detail_view(request, pk):
     itinerary = get_object_or_404(Itinerary, pk=pk, user=request.user)
     return render(request, 'itinerary/itinerary_detail.html', {'itinerary': itinerary})
 
+
 @login_required
 def itinerary_create_view(request):
+    if request.user.is_staff:
+        messages.error(request, 'Admins cannot create itineraries.')
+        return redirect('home')
     if request.method == 'POST':
         form = ItineraryForm(request.POST)
         if form.is_valid():
@@ -27,6 +42,7 @@ def itinerary_create_view(request):
     else:
         form = ItineraryForm()
     return render(request, 'itinerary/itinerary_form.html', {'form': form})
+
 
 @login_required
 def itinerary_update_view(request, pk):
@@ -41,6 +57,7 @@ def itinerary_update_view(request, pk):
         form = ItineraryForm(instance=itinerary)
     return render(request, 'itinerary/itinerary_form.html', {'form': form, 'itinerary': itinerary})
 
+
 @login_required
 def itinerary_delete_view(request, pk):
     itinerary = get_object_or_404(Itinerary, pk=pk, user=request.user)
@@ -49,6 +66,7 @@ def itinerary_delete_view(request, pk):
         messages.success(request, 'Itinerary deleted.')
         return redirect('itinerary:itinerary_list')
     return render(request, 'itinerary/itinerary_confirm_delete.html', {'itinerary': itinerary})
+
 
 @login_required
 def item_create_view(request, itinerary_pk):
@@ -63,7 +81,14 @@ def item_create_view(request, itinerary_pk):
             return redirect('itinerary:itinerary_detail', pk=itinerary.pk)
     else:
         form = ItineraryItemForm()
-    return render(request, 'itinerary/item_form.html', {'form': form, 'itinerary_pk': itinerary_pk})
+    # Pass the full itinerary object so template can use itinerary.pk
+    return render(request, 'itinerary/item_form.html', {
+        'form': form,
+        'itinerary': itinerary,
+        'itinerary_pk': itinerary_pk,
+        'title': 'Add Activity',
+    })
+
 
 @login_required
 def item_update_view(request, itinerary_pk, item_pk):
@@ -77,7 +102,14 @@ def item_update_view(request, itinerary_pk, item_pk):
             return redirect('itinerary:itinerary_detail', pk=itinerary.pk)
     else:
         form = ItineraryItemForm(instance=item)
-    return render(request, 'itinerary/item_form.html', {'form': form, 'item': item, 'itinerary_pk': itinerary_pk})
+    return render(request, 'itinerary/item_form.html', {
+        'form': form,
+        'item': item,
+        'itinerary': itinerary,
+        'itinerary_pk': itinerary_pk,
+        'title': 'Edit Activity',
+    })
+
 
 @login_required
 def item_delete_view(request, itinerary_pk, item_pk):

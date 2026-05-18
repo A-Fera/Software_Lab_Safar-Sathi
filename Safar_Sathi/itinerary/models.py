@@ -51,6 +51,7 @@ class Itinerary(models.Model):
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, self.status)
 
+
 class ItineraryItem(models.Model):
     ITEM_TYPES = [
         ('destination', 'Destination Visit'),
@@ -77,3 +78,6 @@ class ItineraryItem(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_item_type_display(self):
+        return dict(self.ITEM_TYPES).get(self.item_type, self.item_type)

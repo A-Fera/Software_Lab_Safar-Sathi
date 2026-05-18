@@ -9,10 +9,9 @@
     </div>
 </div>
 <div class="container py-4">
-    <!-- FILTERS -->
     <div class="card p-3 mb-4 border-0 shadow-sm">
         <form method="get" class="row g-2 align-items-center">
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" name="search" value="{{ search }}" class="form-control border-start-0 ps-0" placeholder="Search by name or location...">
@@ -26,8 +25,16 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="col-md-2">
+                <select name="division" class="form-select">
+                    <option value="">All Divisions</option>
+                    {% for val, label in divisions %}
+                    <option value="{{ val }}" {% if val == selected_division %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Filter</button></div>
-            <div class="col-md-2"><a href="{% url 'destinations:destination_list' %}" class="btn btn-outline-secondary w-100">Clear</a></div>
+            <div class="col-md-1"><a href="{% url 'destinations:destination_list' %}" class="btn btn-outline-secondary w-100"><i class="bi bi-x"></i></a></div>
         </form>
     </div>
     {% if user.is_staff %}
@@ -51,11 +58,9 @@
                         {% if dest.is_featured %}<span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>Featured</span>{% endif %}
                     </div>
                     <h5 class="card-title">{{ dest.name }}</h5>
-                    <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ dest.location }}{% if dest.country %}, {{ dest.country }}{% endif %}</p>
+                    <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>{{ dest.location }}</p>
+                    {% if dest.division %}<p class="text-muted small mb-2"><i class="bi bi-map me-1"></i>{{ dest.get_division_display }} Division</p>{% endif %}
                     <p class="card-text text-muted small" style="line-height:1.6;">{{ dest.description|truncatewords:20 }}</p>
-                    {% if dest.entry_fee > 0 %}
-                    <p class="text-primary small fw-bold mb-0"><i class="bi bi-ticket me-1"></i>Entry: ৳{{ dest.entry_fee }}</p>
-                    {% endif %}
                 </div>
                 <div class="card-footer bg-transparent border-0 pb-3">
                     <a href="{% url 'destinations:destination_detail' dest.pk %}" class="btn btn-primary btn-sm w-100">Explore <i class="bi bi-arrow-right ms-1"></i></a>
@@ -66,16 +71,15 @@
         <div class="col-12 text-center py-5 text-muted">
             <i class="bi bi-geo-alt" style="font-size:4rem;opacity:.3;"></i>
             <h5 class="mt-3">No destinations found</h5>
-            <p>Try changing your search or <a href="{% url 'destinations:destination_list' %}">view all</a></p>
         </div>
         {% endfor %}
     </div>
     {% if is_paginated %}
     <nav class="mt-5 d-flex justify-content-center">
         <ul class="pagination">
-            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}&category={{ selected_category }}">‹ Prev</a></li>{% endif %}
-            {% for n in page_obj.paginator.page_range %}<li class="page-item {% if n == page_obj.number %}active{% endif %}"><a class="page-link" href="?page={{ n }}&search={{ search }}&category={{ selected_category }}">{{ n }}</a></li>{% endfor %}
-            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}&category={{ selected_category }}">Next ›</a></li>{% endif %}
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}&category={{ selected_category }}&division={{ selected_division }}">‹</a></li>{% endif %}
+            {% for n in page_obj.paginator.page_range %}<li class="page-item {% if n == page_obj.number %}active{% endif %}"><a class="page-link" href="?page={{ n }}&search={{ search }}&category={{ selected_category }}&division={{ selected_division }}">{{ n }}</a></li>{% endfor %}
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}&category={{ selected_category }}&division={{ selected_division }}">›</a></li>{% endif %}
         </ul>
     </nav>
     {% endif %}

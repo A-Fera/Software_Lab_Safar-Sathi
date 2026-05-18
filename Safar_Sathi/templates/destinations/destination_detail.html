@@ -8,7 +8,7 @@
             <div>
                 <span class="badge bg-warning text-dark mb-2">{{ destination.get_category_display }}</span>
                 <h1>{{ destination.name }}</h1>
-                <p style="color:rgba(255,255,255,.8);"><i class="bi bi-geo-alt me-1"></i>{{ destination.location }}{% if destination.country %}, {{ destination.country }}{% endif %}</p>
+                <p style="color:rgba(255,255,255,.8);"><i class="bi bi-geo-alt me-1"></i>{{ destination.location }}{% if destination.division %}, {{ destination.get_division_display }}{% endif %}{% if destination.country %}, {{ destination.country }}{% endif %}</p>
             </div>
             {% if user.is_staff %}
             <div class="d-flex gap-2">
@@ -27,7 +27,7 @@
             <img src="{{ photos.0.image.url }}" class="w-100 rounded" style="height:380px;object-fit:cover;" alt="{{ destination.name }}">
         </div>
         <div class="col-md-4">
-            <div class="row g-2 h-100">
+            <div class="row g-2">
                 {% for photo in photos|slice:"1:5" %}
                 <div class="col-6">
                     <img src="{{ photo.image.url }}" class="w-100 rounded" style="height:184px;object-fit:cover;" alt="{{ destination.name }}">
@@ -35,6 +35,18 @@
                 {% endfor %}
             </div>
         </div>
+    </div>
+    {% endif %}
+
+    <!-- ADMIN: UPLOAD MORE PHOTOS INLINE -->
+    {% if user.is_staff %}
+    <div class="card p-3 mb-4 border-0" style="background:rgba(26,107,60,.06);border-radius:var(--radius);">
+        <form method="post" action="{% url 'destinations:photo_upload' destination.pk %}" enctype="multipart/form-data" class="d-flex align-items-center gap-3 flex-wrap">
+            {% csrf_token %}
+            <label class="form-label mb-0 fw-bold"><i class="bi bi-camera me-1 text-primary"></i>Add More Photos:</label>
+            <input type="file" name="images" class="form-control form-control-sm" style="max-width:300px;" multiple accept="image/*">
+            <button type="submit" class="btn btn-primary btn-sm px-3">Upload</button>
+        </form>
     </div>
     {% endif %}
 
@@ -71,7 +83,6 @@
             </div>
             {% endif %}
 
-            <!-- ACCOMMODATIONS -->
             {% if accommodations %}
             <div class="card p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -102,12 +113,11 @@
             </div>
             {% endif %}
 
-            <!-- REVIEWS -->
             <div class="card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Traveler Reviews</h5>
                     <div class="d-flex gap-2">
-                        {% if user.is_authenticated and not user_has_reviewed %}
+                        {% if user.is_authenticated and not user.is_staff and not user_has_reviewed %}
                         <a href="{% url 'reviews:destination_review' destination.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-star me-1"></i>Write Review</a>
                         {% endif %}
                         <a href="{% url 'reviews:destination_review_list' destination.pk %}" class="btn btn-outline-secondary btn-sm">View All</a>
@@ -122,11 +132,14 @@
                     <div class="stars small mb-1">{% for i in "12345" %}{% if forloop.counter <= review.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}</div>
                     {% if review.title %}<p class="fw-bold small mb-1">{{ review.title }}</p>{% endif %}
                     <p class="text-muted small mb-0" style="line-height:1.6;">{{ review.content }}</p>
+                    {% if review.photos.exists %}
+                    <div class="d-flex flex-wrap gap-2 mt-2">{% for photo in review.photos.all %}<img src="{{ photo.image.url }}" class="rounded" style="width:70px;height:70px;object-fit:cover;">{% endfor %}</div>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <div class="text-center text-muted py-4">
                     <i class="bi bi-chat-square-text" style="font-size:2.5rem;opacity:.3;"></i>
-                    <p class="mt-2">No reviews yet. Be the first!</p>
+                    <p class="mt-2 small">No reviews yet.{% if not user.is_staff %} Be the first!{% endif %}</p>
                 </div>
                 {% endfor %}
             </div>
@@ -137,6 +150,7 @@
                 <h6 class="fw-bold mb-3">Quick Info</h6>
                 <ul class="list-unstyled" style="font-size:.9rem;line-height:2.5;">
                     <li><i class="bi bi-geo-alt text-primary me-2"></i>{{ destination.location }}</li>
+                    {% if destination.division %}<li><i class="bi bi-map text-primary me-2"></i>{{ destination.get_division_display }} Division</li>{% endif %}
                     <li><i class="bi bi-globe text-primary me-2"></i>{{ destination.country }}</li>
                     {% if destination.entry_fee > 0 %}
                     <li><i class="bi bi-ticket text-primary me-2"></i>Entry: ৳{{ destination.entry_fee }}</li>
@@ -146,15 +160,12 @@
                     <li><i class="bi bi-tag text-primary me-2"></i>{{ destination.get_category_display }}</li>
                 </ul>
             </div>
+            {% if user.is_authenticated and not user.is_staff %}
             <div class="sidebar-card">
-                <h6 class="fw-bold mb-3">Actions</h6>
-                {% if user.is_authenticated %}
-                <a href="{% url 'destinations:photo_upload' destination.pk %}" class="btn btn-outline-primary btn-sm w-100 mb-2"><i class="bi bi-camera me-1"></i>Upload Photo</a>
+                <h6 class="fw-bold mb-3">Plan Your Trip</h6>
                 <a href="{% url 'itinerary:itinerary_create' %}" class="btn btn-primary btn-sm w-100"><i class="bi bi-journal-plus me-1"></i>Add to Itinerary</a>
-                {% else %}
-                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-sm w-100">Login to interact</a>
-                {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
